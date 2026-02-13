@@ -21,17 +21,24 @@ except ImportError:
 
 
 def download_videos(singer_name, num_videos):
+    print(f"Searching for videos of '{singer_name}'...")
+
+    common_headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-us,en;q=0.5',
+    }
+
     try:
         ydl_opts_search = {
             'quiet': True,
             'no_warnings': True,
             'extract_flat': True,
             'skip_download': True,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'web']
-                }
-            }
+            'nocheckcertificate': True,
+            'ignoreerrors': True,
+            'logtostderr': False,
+            'http_headers': common_headers,
         }
 
         search_query = f"ytsearch{num_videos}:{singer_name} songs"
@@ -40,9 +47,14 @@ def download_videos(singer_name, num_videos):
             search_results = ydl.extract_info(search_query, download=False)
 
         if not search_results or 'entries' not in search_results:
+            print("Error: No videos found!")
             return []
 
         videos = search_results['entries']
+
+        if len(videos) < num_videos:
+             print(f"Warning: Only found {len(videos)} videos.")
+
         downloaded_files = []
 
         for i, video in enumerate(videos[:num_videos]):
@@ -51,40 +63,52 @@ def download_videos(singer_name, num_videos):
 
             time.sleep(2)
 
-            video_url = f"https://www.youtube.com/watch?v={video['id']}"
-            temp_filename = f"temp_video_{i}"
+            try:
+                video_url = f"https://www.youtube.com/watch?v={video['id']}"
+                temp_filename = f"temp_video_{i}"
 
-            ydl_opts_download = {
-                'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
-                'outtmpl': temp_filename + '.%(ext)s',
-                'quiet': True,
-                'no_warnings': True,
-                'noprogress': True,
-                'retries': 10,
-                'fragment_retries': 10,
-                'skip_unavailable_fragments': True,
-                'nocheckcertificate': True,
-                'http_headers': {
-                    'User-Agent': 'Mozilla/5.0'
-                },
-                'extractor_args': {
-                    'youtube': {
-                        'player_client': ['android', 'web', 'ios']
+                print(f"Downloading video {i+1}/{num_videos}: {video.get('title', 'Unknown')}")
+
+                ydl_opts_download = {
+                    'format': 'bestaudio/best',
+                    'outtmpl': temp_filename + '.%(ext)s',
+                    'quiet': True,
+                    'no_warnings': True,
+                    'nocheckcertificate': True,
+                    'ignoreerrors': True,
+                    'logtostderr': False,
+                    'source_address': '0.0.0.0', # Force IPv4
+                    'http_headers': common_headers,
+                    'extractor_args': {
+                        'youtube': {
+                            'player_client': ['web', 'ios'],
+                            'player_skip': ['webpage', 'configs', 'js'],
+                        }
                     }
                 }
-            }
 
-            with yt_dlp.YoutubeDL(ydl_opts_download) as ydl:
-                ydl.extract_info(video_url, download=True)
+                with yt_dlp.YoutubeDL(ydl_opts_download) as ydl:
+                    ydl.extract_info(video_url, download=True)
 
-            for file in os.listdir('.'):
-                if file.startswith(temp_filename):
-                    downloaded_files.append(file)
-                    break
+                found = False
+                for file in os.listdir('.'):
+                    if file.startswith(temp_filename) and file.split('.')[-1] in ['webm', 'm4a', 'mp3', 'opus', 'mp4']:
+                        downloaded_files.append(file)
+                        print(f"Downloaded: {file}")
+                        found = True
+                        break
+
+                if not found:
+                    print(f"Warning: File not found for {video.get('title')}")
+
+            except Exception as e:
+                print(f"Error downloading video {i+1}: {e}")
+                continue
 
         return downloaded_files
 
-    except:
+    except Exception as e:
+        print(f"Search failed: {e}")
         return []
 
 
