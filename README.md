@@ -44,6 +44,10 @@ python 102303557.py "Arijit Singh" 15 25 output.mp3
 
 A Streamlit web interface that provides the same mashup functionality with email delivery.
 
+**Deployed App:** [https://mashmysong.streamlit.app/](https://mashmysong.streamlit.app/)
+
+> **Note:** Due to YouTube's strict anti-bot policies, the deployed version may encounter `403 Forbidden` or "Sign in to confirm you’re not a bot" errors. It is highly recommended to **run the app locally** for reliable performance.
+
 **Features:**
 - User-friendly web interface
 - Same mashup generation as CLI
