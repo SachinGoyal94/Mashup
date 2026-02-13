@@ -1,0 +1,8 @@
+streamlit
+yt-dlp
+pydub
+imageio-ffmpeg
+audioop-lts
+mailjet-rest
+python-dotenv
+
