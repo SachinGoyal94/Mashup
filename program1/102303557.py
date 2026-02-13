@@ -59,6 +59,9 @@ def download_videos(singer_name, num_videos):
                     'quiet': True,
                     'no_warnings': True,
                     'noprogress': True,
+                    'nocheckcertificate': True,
+                    'ignoreerrors': True,
+                    'logtostderr': False,
                 }
 
                 with yt_dlp.YoutubeDL(ydl_opts_download) as ydl:
