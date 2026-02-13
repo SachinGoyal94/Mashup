@@ -77,15 +77,18 @@ def download_videos(singer_name, num_videos):
                     'nocheckcertificate': True,
                     'ignoreerrors': True,
                     'logtostderr': False,
-                    'source_address': '0.0.0.0', # Force IPv4
                     'http_headers': common_headers,
                     'extractor_args': {
                         'youtube': {
-                            'player_client': ['web', 'ios'],
-                            'player_skip': ['webpage', 'configs', 'js'],
+                            'player_client': ['android', 'ios'],
                         }
                     }
                 }
+
+                # Start of optional cookie usage
+                if os.path.exists('cookies.txt'):
+                    ydl_opts_download['cookiefile'] = 'cookies.txt'
+                # End of optional cookie usage
 
                 with yt_dlp.YoutubeDL(ydl_opts_download) as ydl:
                     ydl.extract_info(video_url, download=True)
